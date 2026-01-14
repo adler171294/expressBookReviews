@@ -49,52 +49,40 @@ regd_users.post("/login", (req, res) => {
 
 // ===================== ADD / UPDATE REVIEW =====================
 regd_users.put("/auth/review/:isbn", (req, res) => {
-  const isbn = req.params.isbn;
-  const review = req.body.review;
+    const isbn = req.params.isbn;
+    const review = req.query.review; // Biasanya review dikirim via query atau body
+    const username = req.session.authorization.username;
 
-  // Username diambil dari session (BUKAN dari body)
-  const username = req.session.authorization.username;
+    if (!review) {
+        return res.status(400).json({ message: "Review is required" });
+    }
 
-  if (!review) {
-    return res.status(400).json({
-      message: "Review is required"
+    if (!books[isbn]) {
+        return res.status(404).json({ message: "Book not found" });
+    }
+
+    books[isbn].reviews[username] = review;
+    // PERBAIKAN: Tambahkan backticks
+    return res.status(200).json({
+        message: `Review for book ${isbn} added/updated successfully` 
     });
-  }
-
-  if (!books[isbn]) {
-    return res.status(404).json({
-      message: "Book not found"
-    });
-  }
-
-  // Tambah / update review
-  books[isbn].reviews[username] = review;
-
-  return res.status(200).json({
-    message: `Review for book ${isbn} added/updated successfully`
-  });
 });
 
+// ===================== DELETE REVIEW =====================
 regd_users.delete("/auth/review/:isbn", (req, res) => {
     const isbn = req.params.isbn;
-    const { username } = req.body;
-
-    // cukup cek username ada di array users
-    if (!users.find(u => u.username === username)) {
-        return res.status(401).json({ message: "User not authenticated" });
-    }
+    // PERBAIKAN: Ambil username dari session, bukan req.body
+    const username = req.session.authorization.username;
 
     if (books[isbn] && books[isbn].reviews[username]) {
         delete books[isbn].reviews[username];
         return res.status(200).json({
-            message: `Review by ${username} for book ${isbn} deleted successfully`,
-            reviews: books[isbn].reviews
+            message: `Review by ${username} for book ${isbn} deleted successfully`
         });
     } else {
-        return res.status(404).json({ message: "Review not found" });
+        return res.status(404).json({ message: "Review not found or you are not authorized" });
     }
 });
-
 
 
 module.exports.authenticated = regd_users;
