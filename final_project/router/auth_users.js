@@ -50,8 +50,8 @@ regd_users.post("/login", (req, res) => {
 // ===================== ADD / UPDATE REVIEW =====================
 regd_users.put("/auth/review/:isbn", (req, res) => {
     const isbn = req.params.isbn;
-    const review = req.query.review; // Biasanya review dikirim via query atau body
-    const username = req.session.authorization.username;
+    const review = req.query.review; // Mengambil review dari query parameter (?review=bagus)
+    const username = req.session.authorization.username; // Mengambil username dari session login
 
     if (!review) {
         return res.status(400).json({ message: "Review is required" });
@@ -61,26 +61,26 @@ regd_users.put("/auth/review/:isbn", (req, res) => {
         return res.status(404).json({ message: "Book not found" });
     }
 
+    // Menambah atau mengupdate review berdasarkan username
     books[isbn].reviews[username] = review;
-    // PERBAIKAN: Tambahkan backticks
+
     return res.status(200).json({
-        message: `Review for book ${isbn} added/updated successfully` 
+        message: `The review for the book with ISBN ${isbn} has been added/updated.`
     });
 });
 
 // ===================== DELETE REVIEW =====================
 regd_users.delete("/auth/review/:isbn", (req, res) => {
     const isbn = req.params.isbn;
-    // PERBAIKAN: Ambil username dari session, bukan req.body
-    const username = req.session.authorization.username;
+    const username = req.session.authorization.username; // Ambil dari session
 
     if (books[isbn] && books[isbn].reviews[username]) {
         delete books[isbn].reviews[username];
         return res.status(200).json({
-            message: `Review by ${username} for book ${isbn} deleted successfully`
+            message: `Reviews for the ISBN ${isbn} posted by the user ${username} deleted.`
         });
     } else {
-        return res.status(404).json({ message: "Review not found or you are not authorized" });
+        return res.status(404).json({ message: "Review not found or unauthorized" });
     }
 });
 
