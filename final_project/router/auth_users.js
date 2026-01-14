@@ -75,16 +75,12 @@ regd_users.put("/auth/review/:isbn", (req, res) => {
   });
 });
 
-// Delete a book review
 regd_users.delete("/auth/review/:isbn", (req, res) => {
     const isbn = req.params.isbn;
-    const { username, password } = req.body;
+    const { username } = req.body;
 
-    if (!username || !password) {
-        return res.status(400).json({ message: "Username and password are required" });
-    }
-
-    if (!authenticatedUser(username, password)) {
+    // cukup cek username ada di array users
+    if (!users.find(u => u.username === username)) {
         return res.status(401).json({ message: "User not authenticated" });
     }
 
@@ -98,6 +94,7 @@ regd_users.delete("/auth/review/:isbn", (req, res) => {
         return res.status(404).json({ message: "Review not found" });
     }
 });
+
 
 
 module.exports.authenticated = regd_users;
